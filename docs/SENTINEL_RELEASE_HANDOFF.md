@@ -50,6 +50,7 @@ Package shape required by CurseForge and the Blizzard client:
 - release notes source: `KWRSentinel/CURSEFORGE_DESCRIPTION.md`
 - changelog source: `KWRSentinel/CHANGELOG.md`
 - upload checklist: `KWRSentinel/CURSEFORGE_UPLOAD.md`
+- guarded upload script: `tools/curseforge-upload-sentinel.ps1`
 
 CurseForge support confirms that the TOC basename must match the parent addon
 folder and each TOC must include the appropriate interface number for the game
@@ -69,7 +70,8 @@ Recommended channels:
   and rollback notes.
 
 Prepared channel copy is available in
-`docs/SENTINEL_DISCORD_CHANNEL_UPDATES.md`.
+`docs/SENTINEL_DISCORD_CHANNEL_UPDATES.md`. Guarded webhook posting is
+available through `tools/sentinel-discord-announce.ps1`.
 
 Minimum release post:
 
@@ -95,7 +97,7 @@ Before public announcement, fill these exact links from the published artifacts:
 Sentinel ZIP SHA-256:
 
 ```text
-8075D9B3B766550FDAB2BBB0A961E66A72B380F6743CD0C8E85542E735144807
+B388655DCD06BECED68C829DC6B5DDF2348D87082537A91A2CE84937CF341358
 ```
 
 ## Validation Gate
