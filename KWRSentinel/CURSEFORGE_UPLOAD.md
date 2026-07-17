@@ -29,8 +29,9 @@ Guarded API upload command:
 $env:CURSEFORGE_PROJECT_ID = "<project id>"
 $env:CURSEFORGE_API_TOKEN = "<author token>"
 $env:CURSEFORGE_GAME_VERSION_IDS = "<comma-separated Retail version ids>"
-./tools/curseforge-upload-sentinel.ps1 -DryRun
-./tools/curseforge-upload-sentinel.ps1
+$artifact = "<absolute path to certified KWRSentinel zip>"
+./tools/curseforge-upload-sentinel.ps1 -ArtifactPath $artifact -DryRun
+./tools/curseforge-upload-sentinel.ps1 -ArtifactPath $artifact
 ```
 
 The script uses CurseForge's multipart upload API:
@@ -43,7 +44,7 @@ GitHub Actions route:
    - `CURSEFORGE_API_TOKEN`
    - `CURSEFORGE_GAME_VERSION_IDS`
 2. Run `.github/workflows/sentinel-release-ops.yml` with
-   `upload_curseforge=true`.
+   `upload_curseforge=true` and `confirm_external_writes=PUBLISH`.
 
 Package evidence:
 

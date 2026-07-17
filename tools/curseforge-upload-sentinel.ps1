@@ -3,7 +3,8 @@ param(
     [string]$ProjectId = $env:CURSEFORGE_PROJECT_ID,
     [string]$ApiToken = $env:CURSEFORGE_API_TOKEN,
     [string]$GameVersionIds = $env:CURSEFORGE_GAME_VERSION_IDS,
-    [string]$ArtifactPath = "C:\Users\josev\Desktop\KWR\Builds\KWRSentinel_6_1_0_ALPHA_25.zip",
+    [Parameter(Mandatory = $true)]
+    [string]$ArtifactPath,
     [ValidateSet("alpha", "beta", "release")]
     [string]$ReleaseType = "alpha",
     [switch]$ManualRelease,
@@ -14,6 +15,7 @@ $ErrorActionPreference = "Stop"
 $root = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $artifact = [IO.Path]::GetFullPath($ArtifactPath)
 $changelogPath = Join-Path $root "KWRSentinel\CHANGELOG.md"
+$tocPath = Join-Path $root "KWRSentinel\KWRSentinel.toc"
 
 function ConvertTo-JsonStringLiteral {
     param([AllowNull()][string]$Value)
@@ -33,6 +35,15 @@ if (-not (Test-Path -LiteralPath $artifact)) {
 if (-not (Test-Path -LiteralPath $changelogPath)) {
     throw "Missing Sentinel changelog: $changelogPath"
 }
+if (-not (Test-Path -LiteralPath $tocPath)) {
+    throw "Missing Sentinel TOC: $tocPath"
+}
+
+$versionLine = Get-Content -LiteralPath $tocPath | Where-Object { $_ -match '^## Version:' } | Select-Object -First 1
+$version = ($versionLine -replace '^## Version:\s*', '').Trim()
+if ([string]::IsNullOrWhiteSpace($version)) {
+    throw "Sentinel TOC does not contain a valid Version field."
+}
 
 $versionIds = @()
 if (-not [string]::IsNullOrWhiteSpace($GameVersionIds)) {
@@ -47,7 +58,7 @@ if (-not [string]::IsNullOrWhiteSpace($GameVersionIds)) {
 $metadataFields = New-Object System.Collections.Generic.List[string]
 $metadataFields.Add('"changelog":' + (ConvertTo-JsonStringLiteral (Get-Content -LiteralPath $changelogPath -Raw)))
 $metadataFields.Add('"changelogType":"markdown"')
-$metadataFields.Add('"displayName":"KWR Sentinel 6.1.0-alpha.25"')
+$metadataFields.Add('"displayName":' + (ConvertTo-JsonStringLiteral ("KWR Sentinel " + $version)))
 $metadataFields.Add('"releaseType":' + (ConvertTo-JsonStringLiteral $ReleaseType))
 $metadataFields.Add('"isMarkedForManualRelease":' + $(if ($ManualRelease) { "true" } else { "false" }))
 if ($versionIds.Count -gt 0) {
