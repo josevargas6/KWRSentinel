@@ -8,6 +8,20 @@ No Discord connector or webhook credential is available in this workspace, so
 these messages are prepared for manual posting or for the KWR Sentinel Discord
 bot once its production connection is available.
 
+Guarded webhook posting command:
+
+```powershell
+$env:DISCORD_WEBHOOK_URL = "<channel webhook>"
+./tools/sentinel-discord-announce.ps1 -Section announcements -DryRun
+./tools/sentinel-discord-announce.ps1 -Section announcements
+./tools/sentinel-discord-announce.ps1 -Section support
+./tools/sentinel-discord-announce.ps1 -Section field-testing
+./tools/sentinel-discord-announce.ps1 -Section ops
+```
+
+Use a channel-specific webhook for each post. The script never stores tokens in
+the repo.
+
 ## #announcements
 
 ```text
@@ -78,7 +92,7 @@ ZIP:
 https://github.com/josevargas6/KWRSentinel/releases/download/v6.1.0-alpha.25/KWRSentinel_6_1_0_ALPHA_25.zip
 
 SHA-256:
-8075D9B3B766550FDAB2BBB0A961E66A72B380F6743CD0C8E85542E735144807
+B388655DCD06BECED68C829DC6B5DDF2348D87082537A91A2CE84937CF341358
 
 Validation:
 - validate.ps1 passed
