@@ -1,0 +1,55 @@
+name: KWR Sentinel CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sentinel-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-release-ops:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build disposable Sentinel test archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Compress-Archive -LiteralPath KWRSentinel -DestinationPath artifacts\KWRSentinel_CI.zip
+
+      - name: Verify guarded release scripts
+        shell: pwsh
+        run: |
+          ./tools/curseforge-upload-sentinel.ps1 `
+            -ArtifactPath "${{ github.workspace }}\artifacts\KWRSentinel_CI.zip" `
+            -DryRun
+          foreach ($section in @("announcements", "support", "field-testing", "ops")) {
+              ./tools/sentinel-discord-announce.ps1 -Section $section -DryRun
+          }
+
+      - name: Reject unapproved webhook destinations
+        shell: pwsh
+        run: |
+          try {
+              ./tools/sentinel-discord-announce.ps1 `
+                -Section announcements `
+                -WebhookUrl "https://example.com/api/webhooks/1/not-discord"
+              throw "Unapproved webhook URL was not rejected."
+          } catch {
+              if ($_.Exception.Message -notmatch "approved Discord webhook endpoint") {
+                  throw
+              }
+          }
