@@ -22,6 +22,7 @@ commander UI.
 - KWR source repo: `https://github.com/josevargas6/KnomercyWarRoom`
 - Sentinel source repo: `https://github.com/josevargas6/KWRSentinel`
 - Sentinel prerelease: `https://github.com/josevargas6/KWRSentinel/releases/tag/v6.1.0-alpha.25`
+- Visibility: public
 - Current local limitation: this checkout has no `.git` directory and this
   shell does not provide `git`, so follow-up source sync must use GitHub API
   operations or a Git-enabled shell.
@@ -47,6 +48,8 @@ Package shape required by CurseForge and the Blizzard client:
 - Retail interface number: `120007`
 - addon title: `KWR Sentinel`
 - release notes source: `KWRSentinel/CURSEFORGE_DESCRIPTION.md`
+- changelog source: `KWRSentinel/CHANGELOG.md`
+- upload checklist: `KWRSentinel/CURSEFORGE_UPLOAD.md`
 
 CurseForge support confirms that the TOC basename must match the parent addon
 folder and each TOC must include the appropriate interface number for the game
@@ -64,6 +67,9 @@ Recommended channels:
 - `#kwr-field-testing`: alpha/beta Retail validation instructions.
 - restricted ops thread: build hashes, GitHub release URL, CurseForge file ID,
   and rollback notes.
+
+Prepared channel copy is available in
+`docs/SENTINEL_DISCORD_CHANNEL_UPDATES.md`.
 
 Minimum release post:
 
@@ -89,7 +95,7 @@ Before public announcement, fill these exact links from the published artifacts:
 Sentinel ZIP SHA-256:
 
 ```text
-84000693ABCA47CAC0B7D09995C3BBAF2E15E96556A4A9C6346227A829447021
+8075D9B3B766550FDAB2BBB0A961E66A72B380F6743CD0C8E85542E735144807
 ```
 
 ## Validation Gate
