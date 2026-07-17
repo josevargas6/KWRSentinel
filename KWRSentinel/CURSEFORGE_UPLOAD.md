@@ -36,6 +36,15 @@ $env:CURSEFORGE_GAME_VERSION_IDS = "<comma-separated Retail version ids>"
 The script uses CurseForge's multipart upload API:
 `POST /api/projects/{projectId}/upload-file` with `metadata` and `file`.
 
+GitHub Actions route:
+
+1. Add repository secrets:
+   - `CURSEFORGE_PROJECT_ID`
+   - `CURSEFORGE_API_TOKEN`
+   - `CURSEFORGE_GAME_VERSION_IDS`
+2. Run `.github/workflows/sentinel-release-ops.yml` with
+   `upload_curseforge=true`.
+
 Package evidence:
 
 - ZIP root folder: `KWRSentinel/`
