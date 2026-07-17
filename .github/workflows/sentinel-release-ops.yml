@@ -45,6 +45,7 @@ jobs:
   release-ops:
     runs-on: windows-latest
     timeout-minutes: 15
+    environment: sentinel-release-ops
     env:
       RELEASE_TAG: ${{ inputs.release_tag }}
       SENTINEL_SHA256: ${{ inputs.sentinel_sha256 }}
