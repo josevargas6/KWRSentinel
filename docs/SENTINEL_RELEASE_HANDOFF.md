@@ -26,6 +26,7 @@ commander UI.
 - Current local limitation: this checkout has no `.git` directory and this
   shell does not provide `git`, so follow-up source sync must use GitHub API
   operations or a Git-enabled shell.
+- Release ops workflow: `.github/workflows/sentinel-release-ops.yml`
 
 ## CurseForge Package Requirements
 
@@ -51,6 +52,10 @@ Package shape required by CurseForge and the Blizzard client:
 - changelog source: `KWRSentinel/CHANGELOG.md`
 - upload checklist: `KWRSentinel/CURSEFORGE_UPLOAD.md`
 - guarded upload script: `tools/curseforge-upload-sentinel.ps1`
+- workflow secrets:
+  - `CURSEFORGE_PROJECT_ID`
+  - `CURSEFORGE_API_TOKEN`
+  - `CURSEFORGE_GAME_VERSION_IDS`
 
 CurseForge support confirms that the TOC basename must match the parent addon
 folder and each TOC must include the appropriate interface number for the game
@@ -72,6 +77,12 @@ Recommended channels:
 Prepared channel copy is available in
 `docs/SENTINEL_DISCORD_CHANNEL_UPDATES.md`. Guarded webhook posting is
 available through `tools/sentinel-discord-announce.ps1`.
+The GitHub workflow expects these optional Discord secrets:
+
+- `DISCORD_WEBHOOK_ANNOUNCEMENTS`
+- `DISCORD_WEBHOOK_SUPPORT`
+- `DISCORD_WEBHOOK_FIELD_TESTING`
+- `DISCORD_WEBHOOK_OPS`
 
 Minimum release post:
 
@@ -97,7 +108,7 @@ Before public announcement, fill these exact links from the published artifacts:
 Sentinel ZIP SHA-256:
 
 ```text
-B388655DCD06BECED68C829DC6B5DDF2348D87082537A91A2CE84937CF341358
+A632BA7E24D2639C38B7412D126B29899F24C3640583DF2E5D64EE547DEE82C4
 ```
 
 ## Validation Gate
