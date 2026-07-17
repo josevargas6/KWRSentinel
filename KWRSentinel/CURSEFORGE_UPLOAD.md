@@ -23,6 +23,19 @@ Required upload fields:
 - Changelog source: `KWRSentinel/CHANGELOG.md`
 - Description source: `KWRSentinel/CURSEFORGE_DESCRIPTION.md`
 
+Guarded API upload command:
+
+```powershell
+$env:CURSEFORGE_PROJECT_ID = "<project id>"
+$env:CURSEFORGE_API_TOKEN = "<author token>"
+$env:CURSEFORGE_GAME_VERSION_IDS = "<comma-separated Retail version ids>"
+./tools/curseforge-upload-sentinel.ps1 -DryRun
+./tools/curseforge-upload-sentinel.ps1
+```
+
+The script uses CurseForge's multipart upload API:
+`POST /api/projects/{projectId}/upload-file` with `metadata` and `file`.
+
 Package evidence:
 
 - ZIP root folder: `KWRSentinel/`
@@ -30,11 +43,10 @@ Package evidence:
 - TOC basename matches parent folder.
 - Interface number: `120007`
 - Package audit: passed.
-- Sentinel ZIP SHA-256:
-
-```text
-8075D9B3B766550FDAB2BBB0A961E66A72B380F6743CD0C8E85542E735144807
-```
+- Sentinel ZIP SHA-256: use the generated
+  `KWR_6_1_0_ALPHA_25_SHA256.txt` manifest next to the built artifact. The
+  exact hash is intentionally not embedded here because this file is packaged
+  inside the ZIP.
 
 Do not upload:
 
