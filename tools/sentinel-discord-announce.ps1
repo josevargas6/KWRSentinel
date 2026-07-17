@@ -33,8 +33,8 @@ $message = $match.Groups[1].Value.Trim()
 if ($DryRun -or [string]::IsNullOrWhiteSpace($WebhookUrl)) {
     Write-Output "DRY RUN: Discord section '$Section'"
     Write-Output $message
-    if (-not $DryRun) {
-        Write-Output "No webhook was provided. Set DISCORD_WEBHOOK_URL or pass -WebhookUrl to post."
+    if (-not $DryRun -and [string]::IsNullOrWhiteSpace($WebhookUrl)) {
+        throw "No webhook was provided. Set DISCORD_WEBHOOK_URL or pass -WebhookUrl to post."
     }
     exit 0
 }
