@@ -22,6 +22,15 @@ $env:DISCORD_WEBHOOK_URL = "<channel webhook>"
 Use a channel-specific webhook for each post. The script never stores tokens in
 the repo.
 
+GitHub Actions route:
+
+1. Add repository secrets:
+   - `DISCORD_WEBHOOK_ANNOUNCEMENTS`
+   - `DISCORD_WEBHOOK_SUPPORT`
+   - `DISCORD_WEBHOOK_FIELD_TESTING`
+   - `DISCORD_WEBHOOK_OPS`
+2. Run `.github/workflows/sentinel-release-ops.yml` with `post_discord=true`.
+
 ## #announcements
 
 ```text
@@ -92,7 +101,7 @@ ZIP:
 https://github.com/josevargas6/KWRSentinel/releases/download/v6.1.0-alpha.25/KWRSentinel_6_1_0_ALPHA_25.zip
 
 SHA-256:
-B388655DCD06BECED68C829DC6B5DDF2348D87082537A91A2CE84937CF341358
+A632BA7E24D2639C38B7412D126B29899F24C3640583DF2E5D64EE547DEE82C4
 
 Validation:
 - validate.ps1 passed
