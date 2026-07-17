@@ -21,9 +21,10 @@ commander UI.
 
 - KWR source repo: `https://github.com/josevargas6/KnomercyWarRoom`
 - Sentinel source repo: `https://github.com/josevargas6/KWRSentinel`
+- Sentinel prerelease: `https://github.com/josevargas6/KWRSentinel/releases/tag/v6.1.0-alpha.25`
 - Current local limitation: this checkout has no `.git` directory and this
-  shell does not provide `git`, so source sync must use GitHub API operations
-  or a Git-enabled shell.
+  shell does not provide `git`, so follow-up source sync must use GitHub API
+  operations or a Git-enabled shell.
 
 ## CurseForge Package Requirements
 
@@ -79,11 +80,17 @@ Limitations: same-client KWR bridge only; no cross-player relay yet.
 
 Before public announcement, fill these exact links from the published artifacts:
 
-- GitHub release: `TBD`
-- Sentinel ZIP: `TBD`
+- GitHub release: `https://github.com/josevargas6/KWRSentinel/releases/tag/v6.1.0-alpha.25`
+- Sentinel ZIP: `https://github.com/josevargas6/KWRSentinel/releases/download/v6.1.0-alpha.25/KWRSentinel_6_1_0_ALPHA_25.zip`
 - CurseForge project: `https://www.curseforge.com/wow/addons/kwr-sentinel`
 - CurseForge file: `TBD after upload/moderation`
-- SHA-256 manifest: `TBD`
+- SHA-256 manifest: `https://github.com/josevargas6/KWRSentinel/releases/download/v6.1.0-alpha.25/KWR_6_1_0_ALPHA_25_SHA256.txt`
+
+Sentinel ZIP SHA-256:
+
+```text
+84000693ABCA47CAC0B7D09995C3BBAF2E15E96556A4A9C6346227A829447021
+```
 
 ## Validation Gate
 
@@ -99,4 +106,3 @@ fengari tests/soak.lua
 
 Then verify the generated Sentinel archive contains only the `KWRSentinel/`
 root and includes `KWRSentinel/KWRSentinel.toc`.
-
