@@ -39,6 +39,17 @@ if ($DryRun -or [string]::IsNullOrWhiteSpace($WebhookUrl)) {
     exit 0
 }
 
+$webhookUri = $null
+if (-not [Uri]::TryCreate($WebhookUrl, [UriKind]::Absolute, [ref]$webhookUri)) {
+    throw "Discord webhook URL is not a valid absolute URI."
+}
+$allowedWebhookHosts = @("discord.com", "canary.discord.com", "ptb.discord.com", "discordapp.com")
+if ($webhookUri.Scheme -ne "https" -or
+    $allowedWebhookHosts -notcontains $webhookUri.Host.ToLowerInvariant() -or
+    $webhookUri.AbsolutePath -notmatch '^/api/webhooks/\d+/[A-Za-z0-9_-]+/?$') {
+    throw "Discord webhook URL must use HTTPS and an approved Discord webhook endpoint."
+}
+
 $payload = @{ content = $message } | ConvertTo-Json -Depth 4
 Invoke-RestMethod `
     -Method Post `

@@ -8,9 +8,17 @@ on:
         required: true
         default: v6.1.0-alpha.25
       sentinel_sha256:
-        description: Expected SHA-256 for KWRSentinel_6_1_0_ALPHA_25.zip.
+        description: Expected SHA-256 for the certified Sentinel ZIP.
         required: true
         default: A632BA7E24D2639C38B7412D126B29899F24C3640583DF2E5D64EE547DEE82C4
+      artifact_name:
+        description: Exact certified Sentinel ZIP filename from the GitHub release.
+        required: true
+        default: KWRSentinel_6_1_0_ALPHA_25.zip
+      hash_manifest_name:
+        description: Exact SHA-256 manifest filename from the GitHub release.
+        required: true
+        default: KWR_6_1_0_ALPHA_25_SHA256.txt
       upload_curseforge:
         description: Upload the certified ZIP to CurseForge.
         required: true
@@ -21,6 +29,14 @@ on:
         required: true
         type: boolean
         default: false
+      confirm_external_writes:
+        description: Type PUBLISH to permit a CurseForge upload or Discord post.
+        required: false
+        default: ""
+
+concurrency:
+  group: sentinel-release-ops
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -29,9 +45,36 @@ jobs:
   release-ops:
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      SENTINEL_SHA256: ${{ inputs.sentinel_sha256 }}
+      ARTIFACT_NAME: ${{ inputs.artifact_name }}
+      HASH_MANIFEST_NAME: ${{ inputs.hash_manifest_name }}
+      CONFIRM_EXTERNAL_WRITES: ${{ inputs.confirm_external_writes }}
     steps:
       - name: Checkout Sentinel repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate release inputs and external-write intent
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9A-Za-z][0-9A-Za-z._-]*$') {
+              throw "Release tag contains unsupported characters."
+          }
+          foreach ($name in @($env:ARTIFACT_NAME, $env:HASH_MANIFEST_NAME)) {
+              if ([IO.Path]::GetFileName($name) -ne $name -or $name -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]*$') {
+                  throw "Artifact inputs must be plain filenames with no directory components."
+              }
+          }
+          if ($env:SENTINEL_SHA256 -notmatch '^[A-Fa-f0-9]{64}$') {
+              throw "Expected Sentinel SHA-256 must contain exactly 64 hexadecimal characters."
+          }
+          $externalWriteRequested = "${{ inputs.upload_curseforge || inputs.post_discord }}" -eq "true"
+          if ($externalWriteRequested -and $env:CONFIRM_EXTERNAL_WRITES -cne "PUBLISH") {
+              throw "External release writes require confirm_external_writes=PUBLISH."
+          }
 
       - name: Download certified release artifacts
         shell: pwsh
@@ -39,21 +82,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          gh release download "${{ inputs.release_tag }}" `
+          gh release download $env:RELEASE_TAG `
             --repo "${{ github.repository }}" `
-            --pattern "KWRSentinel_6_1_0_ALPHA_25.zip" `
-            --pattern "KWR_6_1_0_ALPHA_25_SHA256.txt" `
+            --pattern $env:ARTIFACT_NAME `
+            --pattern $env:HASH_MANIFEST_NAME `
             --dir artifacts
 
       - name: Verify Sentinel artifact hash
         shell: pwsh
         run: |
-          $artifact = Join-Path "${{ github.workspace }}" "artifacts\KWRSentinel_6_1_0_ALPHA_25.zip"
+          $artifact = Join-Path "${{ github.workspace }}" ("artifacts\" + $env:ARTIFACT_NAME)
           if (-not (Test-Path -LiteralPath $artifact)) {
               throw "Missing Sentinel release artifact: $artifact"
           }
           $actual = (Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash.ToUpperInvariant()
-          $expected = "${{ inputs.sentinel_sha256 }}".ToUpperInvariant()
+          $expected = $env:SENTINEL_SHA256.ToUpperInvariant()
           if ($actual -ne $expected) {
               throw "Sentinel hash mismatch. Expected $expected but got $actual."
           }
@@ -63,7 +106,7 @@ jobs:
         shell: pwsh
         run: |
           ./tools/curseforge-upload-sentinel.ps1 `
-            -ArtifactPath "${{ github.workspace }}\artifacts\KWRSentinel_6_1_0_ALPHA_25.zip" `
+            -ArtifactPath (Join-Path "${{ github.workspace }}" ("artifacts\" + $env:ARTIFACT_NAME)) `
             -DryRun
           foreach ($section in @("announcements", "support", "field-testing", "ops")) {
               ./tools/sentinel-discord-announce.ps1 -Section $section -DryRun
@@ -78,7 +121,7 @@ jobs:
           CURSEFORGE_GAME_VERSION_IDS: ${{ secrets.CURSEFORGE_GAME_VERSION_IDS }}
         run: |
           ./tools/curseforge-upload-sentinel.ps1 `
-            -ArtifactPath "${{ github.workspace }}\artifacts\KWRSentinel_6_1_0_ALPHA_25.zip"
+            -ArtifactPath (Join-Path "${{ github.workspace }}" ("artifacts\" + $env:ARTIFACT_NAME))
 
       - name: Post Discord announcement
         if: ${{ inputs.post_discord }}
