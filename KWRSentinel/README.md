@@ -30,3 +30,4 @@ Slash commands:
 - `/kwrs map` toggles the battlefield map
 - `/kwrs score` toggles the scoreboard
 - `/kwrs raid` toggles Blizzard raid frames
+- `/kwrs reset` restores the execution card to its default position

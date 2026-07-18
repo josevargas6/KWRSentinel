@@ -18,6 +18,8 @@ local TRUST_TONES = {
     MISMATCH = "active",
 }
 
+local MAX_LINE = 64
+
 local function clean(value, fallback)
     value = value ~= nil and tostring(value) or ""
     if value == "" then
@@ -36,6 +38,51 @@ local function shortName(value)
     return dash and value:sub(1, dash - 1) or value
 end
 
+local function trim(value)
+    value = clean(value, "")
+    value = value:gsub("^%s+", ""):gsub("%s+$", "")
+    value = value:gsub("%s+", " ")
+    return value
+end
+
+local function stripCommanderPrefix(value)
+    value = trim(value)
+    value = value:gsub("^ACTION:%s*", "")
+    value = value:gsub("^WHO:%s*[^.]+%.%s*", "")
+    value = value:gsub("^TRIGGER:%s*[^.]+%.%s*", "")
+    value = value:gsub("^SWITCH:%s*[^.]+%.%s*", "")
+    value = value:gsub("^CALL READ:%s*", "")
+    return trim(value)
+end
+
+local function compactLine(value, fallback, maximum)
+    value = stripCommanderPrefix(value)
+    fallback = fallback or ""
+    maximum = maximum or MAX_LINE
+    if value == "" then
+        value = fallback
+    end
+    value = value:gsub("Protect the current scoring requirement", "Hold scoring edge")
+    value = value:gsub("verify enemy movement", "watch reserve")
+    value = value:gsub("then reassess", "then reassess")
+    value = value:gsub("If the enemy reserve remains free or the winning anchor calls instability", "Abort on free reserve or anchor instability")
+    value = value:gsub("the current scoring requirement", "scoring edge")
+    value = value:gsub("current objective edge", "objective edge")
+    value = trim(value)
+    if #value > maximum then
+        local sentence = value:match("^(.-)%.%s")
+        if sentence and sentence ~= "" and #sentence <= maximum then
+            return sentence .. "."
+        end
+        return value:sub(1, maximum - 3):gsub("%s+%S*$", "") .. "..."
+    end
+    return value
+end
+
+local function setFontColor(font, tone)
+    font:SetTextColor(Sentinel.Theme:Color(tone or "text"))
+end
+
 local function setTone(frame, tone)
     Sentinel.Theme:Style(frame, "panel", tone or "border")
 end
@@ -48,11 +95,15 @@ local function makeLabel(parent, text, x, y, width)
     return label
 end
 
-local function makeValue(parent, x, y, width, size)
+local function makeValue(parent, x, y, width, height, size, tone)
     local value = Sentinel.Theme:Font(parent, size or 12, "text", "LEFT", "OUTLINE")
     value:SetPoint("TOPLEFT", x, y)
     value:SetWidth(width or 180)
-    value:SetHeight(18)
+    value:SetHeight(height or 18)
+    value:SetTextColor(Sentinel.Theme:Color(tone or "text"))
+    if value.SetWordWrap then
+        value:SetWordWrap(true)
+    end
     return value
 end
 
@@ -63,6 +114,15 @@ local function badge(parent, width, height)
     frame.text = Sentinel.Theme:Font(frame, 8, "text", "CENTER", "OUTLINE")
     frame.text:SetAllPoints()
     return frame
+end
+
+local function hairline(parent, y)
+    local line = parent:CreateTexture(nil, "BORDER")
+    line:SetColorTexture(Sentinel.Theme:Color("hairline"))
+    line:SetPoint("TOPLEFT", 10, y)
+    line:SetPoint("TOPRIGHT", -10, y)
+    line:SetHeight(1)
+    return line
 end
 
 local function deriveWinState(view)
@@ -134,7 +194,7 @@ local function matchStateText(view, winState)
     local score = view.score or {}
     local condition = clean(score.condition, "")
     if condition ~= "" and condition ~= "Waiting for live battleground data." then
-        return condition
+        return compactLine(condition, "", 68)
     end
     if winState == "WINNING" then return "Ahead. Preserve the current objective edge." end
     if winState == "LOSING" then return "Behind. Recover the next objective window." end
@@ -146,24 +206,24 @@ local function holdLine(view, winState)
     local assignment = view.assignment or {}
     local score = view.score or {}
     if view.requirement and view.requirement.holdLine then
-        return clean(view.requirement.holdLine, "Hold current assignment.")
+        return compactLine(view.requirement.holdLine, "Hold current assignment.", 62)
     end
     if winState == "WINNING" then
-        return clean(score.action or assignment.detail, "Hold current assignment.")
+        return compactLine(score.action or assignment.detail, "Hold current assignment.", 62)
     end
-    return clean(assignment.detail, "Do not leave without commander authority.")
+    return compactLine(assignment.detail, "Do not leave without commander authority.", 62)
 end
 
 local function winLine(view, winState)
     local command = view.command or {}
     local score = view.score or {}
     if view.requirement and view.requirement.winLine then
-        return clean(view.requirement.winLine, "Win the next objective exchange.")
+        return compactLine(view.requirement.winLine, "Win the next objective exchange.", 62)
     end
     if winState == "LOSING" or winState == "EVEN" then
-        return clean(command.action or score.action, "Win the next objective exchange.")
+        return compactLine(command.action or score.action, "Win the next objective exchange.", 62)
     end
-    return clean(command.line2 or score.commandWhen, "Keep the lead stable.")
+    return compactLine(command.line2 or score.commandWhen, "Keep the lead stable.", 62)
 end
 
 local function footerLine(view)
@@ -235,45 +295,47 @@ function HUD:Create()
     if self.frame then return self.frame end
     local profile = Sentinel.db.profile.hud
     local frame = CreateFrame("Frame", "KWRSentinel_HUD", UIParent, "BackdropTemplate")
-    frame:SetSize(318, 236)
+    frame:SetSize(350, 244)
     frame:SetPoint(profile.point, UIParent, profile.relativePoint, profile.x, profile.y)
     frame:SetFrameStrata("HIGH")
     frame:SetClampedToScreen(true)
     Sentinel.Theme:Style(frame, "background", "border")
 
-    frame.title = Sentinel.Theme:Font(frame, 13, "accent", "LEFT", "OUTLINE")
+    frame.title = Sentinel.Theme:Font(frame, 12, "accent", "LEFT", "OUTLINE")
     frame.title:SetPoint("TOPLEFT", 10, -9)
     frame.title:SetText("KWR SENTINEL")
 
-    frame.winBadge = badge(frame, 58, 18)
-    frame.winBadge:SetPoint("TOPRIGHT", -116, -8)
-    frame.trustBadge = badge(frame, 102, 18)
+    frame.winBadge = badge(frame, 62, 18)
+    frame.winBadge:SetPoint("TOPRIGHT", -118, -8)
+    frame.trustBadge = badge(frame, 104, 18)
     frame.trustBadge:SetPoint("TOPRIGHT", -10, -8)
 
     frame.header = Sentinel.Theme:Font(frame, 9, "muted", "LEFT", "OUTLINE")
-    frame.header:SetPoint("TOPLEFT", 10, -29)
-    frame.header:SetSize(298, 16)
+    frame.header:SetPoint("TOPLEFT", 10, -30)
+    frame.header:SetSize(330, 14)
 
-    frame.jobLabel = makeLabel(frame, "MY JOB", 10, -52)
-    frame.job = makeValue(frame, 76, -50, 222, 14)
-    frame.moveLabel = makeLabel(frame, "MOVE", 10, -78)
-    frame.move = makeValue(frame, 76, -76, 222, 14)
-    frame.targetLabel = makeLabel(frame, "TARGET", 10, -104)
-    frame.target = makeValue(frame, 76, -102, 222, 14)
-    frame.stateLabel = makeLabel(frame, "MATCH", 10, -132)
-    frame.state = makeValue(frame, 76, -130, 222, 10)
-    frame.holdLabel = makeLabel(frame, "TO HOLD", 10, -160)
-    frame.hold = makeValue(frame, 76, -158, 222, 10)
-    frame.winLabel = makeLabel(frame, "TO WIN", 10, -188)
-    frame.win = makeValue(frame, 76, -186, 222, 10)
+    frame.topLine = hairline(frame, -48)
+    frame.jobLabel = makeLabel(frame, "MY JOB", 10, -58)
+    frame.job = makeValue(frame, 76, -56, 254, 20, 15, "strong")
+    frame.moveLabel = makeLabel(frame, "MOVE", 10, -84)
+    frame.move = makeValue(frame, 76, -82, 254, 20, 16, "strong")
+    frame.targetLabel = makeLabel(frame, "TARGET", 10, -112)
+    frame.target = makeValue(frame, 76, -110, 254, 20, 14, "strong")
+    frame.midLine = hairline(frame, -136)
+    frame.stateLabel = makeLabel(frame, "MATCH", 10, -148)
+    frame.state = makeValue(frame, 76, -146, 254, 24, 10, "text")
+    frame.holdLabel = makeLabel(frame, "TO HOLD", 10, -176)
+    frame.hold = makeValue(frame, 76, -174, 254, 24, 10, "text")
+    frame.winLabel = makeLabel(frame, "TO WIN", 10, -204)
+    frame.win = makeValue(frame, 76, -202, 254, 24, 10, "text")
     frame.footer = Sentinel.Theme:Font(frame, 8, "muted", "LEFT", "OUTLINE")
-    frame.footer:SetPoint("BOTTOMLEFT", 10, 8)
+    frame.footer:SetPoint("BOTTOMLEFT", 10, 9)
     frame.footer:SetSize(220, 12)
 
-    frame.map = Sentinel.Theme:Button(frame, "MAP", 34, 17, function() Sentinel.NativeUI:ToggleMap() end)
-    frame.map:SetPoint("BOTTOMRIGHT", -82, 6)
-    frame.score = Sentinel.Theme:Button(frame, "SCORE", 48, 17, function() Sentinel.NativeUI:ToggleScore() end)
-    frame.score:SetPoint("BOTTOMRIGHT", -30, 6)
+    frame.map = Sentinel.Theme:Button(frame, "MAP", 38, 17, function() Sentinel.NativeUI:ToggleMap() end)
+    frame.map:SetPoint("BOTTOMRIGHT", -92, 6)
+    frame.score = Sentinel.Theme:Button(frame, "SCORE", 54, 17, function() Sentinel.NativeUI:ToggleScore() end)
+    frame.score:SetPoint("BOTTOMRIGHT", -32, 6)
 
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -289,6 +351,23 @@ function HUD:Create()
     end)
     self.frame = frame
     return frame
+end
+
+function HUD:ResetPosition()
+    local defaults = Sentinel.defaults and Sentinel.defaults.profile and Sentinel.defaults.profile.hud
+    if not defaults or not Sentinel.db or not Sentinel.db.profile then
+        return
+    end
+    local profile = Sentinel.db.profile.hud
+    profile.point = defaults.point
+    profile.relativePoint = defaults.relativePoint
+    profile.x = defaults.x
+    profile.y = defaults.y
+    if self.frame then
+        self.frame:ClearAllPoints()
+        self.frame:SetPoint(profile.point, UIParent, profile.relativePoint, profile.x, profile.y)
+        self:Update()
+    end
 end
 
 function HUD:CreateTargetCue()
@@ -382,6 +461,8 @@ function HUD:Update()
     frame.hold:SetText(holdLine(view, winState))
     frame.win:SetText(winLine(view, winState))
     frame.footer:SetText(footerLine(view))
+    setFontColor(frame.move, winState == "LOSING" and "forming" or "strong")
+    setFontColor(frame.target, targetState(view) == "RED" and "active" or "strong")
     self:UpdateTargetCue(view)
     frame:Show()
 end

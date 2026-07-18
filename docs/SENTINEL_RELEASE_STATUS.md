@@ -19,7 +19,7 @@ Public links:
 Certified ZIP SHA-256:
 
 ```text
-A632BA7E24D2639C38B7412D126B29899F24C3640583DF2E5D64EE547DEE82C4
+2F25602899C4F278C7A71A443C89C25DE7076F21FF818C5E4BD9670881CC2ED6
 ```
 
 ## Completed Evidence
@@ -87,4 +87,3 @@ The full release goal is complete only after:
 2. Discord channel posts are sent through the configured server connection.
 3. `docs/SENTINEL_RELEASE_HANDOFF.md` and this file are updated with those
    external receipts.
-

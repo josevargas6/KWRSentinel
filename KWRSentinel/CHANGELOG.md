@@ -4,6 +4,10 @@
 
 Initial official Sentinel alpha distribution candidate.
 
+- Polishes the execution card with stronger visual hierarchy, more disciplined
+  spacing, shorter player-facing hold/win lines, and a less intrusive default
+  position.
+- Adds `/kwrs reset` to restore the card to its default position.
 - Adds the compact non-commander execution card defined by the Sentinel design
   handoff.
 - Shows commander trust, win state, player job, movement authority, target
@@ -17,4 +21,3 @@ Initial official Sentinel alpha distribution candidate.
   complete.
 - Performs no targeting, focusing, casting, macro execution, keybinding writes,
   movement automation, or automatic chat.
-
