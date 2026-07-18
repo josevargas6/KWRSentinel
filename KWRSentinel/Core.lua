@@ -16,12 +16,14 @@ local DEFAULTS = {
             locked = false,
             point = "CENTER",
             relativePoint = "CENTER",
-            x = 525,
-            y = -20,
+            x = 360,
+            y = -58,
         },
         loadMessage = true,
     },
 }
+
+Sentinel.defaults = DEFAULTS
 
 local function mergeDefaults(target, defaults)
     target = type(target) == "table" and target or {}
@@ -99,6 +101,11 @@ SLASH_KWRSENTINEL1 = "/sentinel"
 SLASH_KWRSENTINEL2 = "/kwrs"
 SlashCmdList.KWRSENTINEL = function(message)
     message = tostring(message or ""):lower()
+    if message == "reset" and Sentinel.HUD then
+        Sentinel.HUD:ResetPosition()
+        Sentinel:Print("Execution card position reset.", true)
+        return
+    end
     if message == "map" and Sentinel.NativeUI then
         Sentinel.NativeUI:ToggleMap()
         return
